@@ -157,8 +157,6 @@ const fetchUpiNumber = async () => {
             // Set default if not found in Firestore, and let admin save it
             ADMIN_UPI_NUMBER = upiNumberInput.value; 
             console.log("UPI number not found in Firestore. Using default from HTML input.");
-            // Optionally, save this default to Firestore automatically if you want
-            // await setDoc(appConfigDocRef, { upiNumber: ADMIN_UPI_NUMBER }, { merge: true });
         }
     } catch (error) {
         console.error("Error fetching UPI number:", error);
@@ -209,6 +207,9 @@ const loadClientView = async (projectId) => {
         const marketDiscountPercent = Number(project.marketDiscountPercent) || 0;
         const clientDisplayDiscountedMarketPrice = Number(project.clientDisplayDiscountedMarketPrice) || 0; // This is the final market price after discount
         const clientPayableDeveloperPrice = Number(project.clientPayableDeveloperPrice) || 0; // This is the final amount client pays
+        
+        // NEW: Calculate sum of individual developer prices for client display
+        const calculatedDeveloperTotalForDisplay = project.services.reduce((sum, service) => sum + Number(service.devPrice), 0);
 
         const servicesRows = project.services.map(service => {
             return `
@@ -283,7 +284,8 @@ const loadClientView = async (projectId) => {
                     <p>Total Market Price (Original): <span class="total-market-price-display">~₹${originalMarketTotal.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span></p>
                     <p>Market Discount Applied: <span class="discount-percent-display">${marketDiscountPercent}%</span></p>
                     <p>Final Market Price: <span class="total-market-price-display">~₹${clientDisplayDiscountedMarketPrice.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span></p>
-                    <p>Total Developer Price: <span class="final-price-emphasis">₹${clientPayableDeveloperPrice.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span></p>
+                    <p>Total Developer Price (Calculated): <span class="client-calculated-dev-total-display">~₹${calculatedDeveloperTotalForDisplay.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span></p>
+                    <p>You Only Pay: <span class="final-price-emphasis">₹${clientPayableDeveloperPrice.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span></p>
                 </div>
                 <div class="you-save-box">
                     You save ₹${totalSavings.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} (${savingsPercentage}%) by choosing SNR!
@@ -306,29 +308,51 @@ const handleUtrSubmission = async (e, projectId) => {
     const clientEmail = document.getElementById('client-email-utr').value;
     const utrNumber = document.getElementById('utr-number').value;
     const utrErrorEl = document.getElementById('utr-error');
-    utrErrorEl.textContent = '';
+    utrErrorEl.textContent = ''; // Clear previous errors
 
     if (!clientEmail || !utrNumber) {
-        utrErrorEl.textContent = "Please fill in all fields.";
+        utrErrorEl.textContent = "Please fill in all fields (Email and UTR).";
         return;
     }
 
     try {
         const projectRef = doc(db, 'projects', projectId);
+        
+        // Fetch current project data to safely update the payments array
+        const docSnap = await getDoc(projectRef);
+        if (!docSnap.exists()) {
+            throw new Error("Project not found when submitting UTR.");
+        }
+        
+        const projectData = docSnap.data();
+        const currentPayments = projectData.payments || [];
+
+        // Check if a pending payment from this email already exists for this project
+        const existingPending = currentPayments.find(p => p.clientEmail === clientEmail && p.status === 'pending');
+        if (existingPending) {
+            utrErrorEl.textContent = "A pending payment request for this email already exists for this project. Please wait for verification.";
+            return;
+        }
+
+        // Add new payment request
+        const newPaymentRequest = {
+            id: Date.now().toString() + Math.random().toString(36).substring(2, 9), // More unique ID
+            clientEmail: clientEmail,
+            utr: utrNumber,
+            status: 'pending',
+            timestamp: serverTimestamp()
+        };
+
         await updateDoc(projectRef, {
-            payments: arrayUnion({
-                id: Date.now().toString(), 
-                clientEmail: clientEmail,
-                utr: utrNumber,
-                status: 'pending',
-                timestamp: serverTimestamp()
-            })
+            payments: arrayUnion(newPaymentRequest)
         });
+        
         alert('UTR submitted successfully! Your payment is pending verification.');
-        loadClientView(projectId); 
+        loadClientView(projectId); // Reload client view to show pending status
     } catch (error) {
         console.error("Error submitting UTR:", error);
-        utrErrorEl.textContent = "Error submitting UTR. Please try again.";
+        // Display a more specific error if possible, but keep it general for client
+        utrErrorEl.textContent = "Error submitting UTR. Please try again or contact support.";
     }
 };
 
@@ -495,7 +519,6 @@ const handleAdminProjectActions = async (e) => {
             finalDeveloperPriceInput.value = project.clientPayableDeveloperPrice || ''; // Load final developer price
 
             // Calculated totals will update from populateAdminServices
-            // No need to set totalMarketPriceInput/totalDevPriceInput as they are now display-only in this version.
             
             document.getElementById('form-title').textContent = 'Edit Project';
             document.getElementById('cancel-edit-btn').style.display = 'block';
