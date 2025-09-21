@@ -20,7 +20,7 @@ const appConfigDocRef = doc(settingsCollection, 'appConfig');
 
 // --- Global Constants ---
 let ADMIN_UPI_NUMBER = "Loading..."; 
-const MARKET_PRICE_MULTIPLIER = 2.5; 
+const MARKET_PRICE_MULTIPLIER = 2.5; // Market Price = Developer Price * 2.5
 
 const DEFAULT_SERVICES = [
     "UI/UX Design",
@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchUpiNumber(); 
             fetchProjects();
             populateAdminServices(true); 
+            // Calculated totals will update automatically from populateAdminServices
         } else {
             showView('login');
         }
@@ -153,8 +154,11 @@ const fetchUpiNumber = async () => {
             ADMIN_UPI_NUMBER = docSnap.data().upiNumber;
             upiNumberInput.value = ADMIN_UPI_NUMBER;
         } else {
+            // Set default if not found in Firestore, and let admin save it
             ADMIN_UPI_NUMBER = upiNumberInput.value; 
-            console.log("UPI number not found in Firestore. Using default from HTML.");
+            console.log("UPI number not found in Firestore. Using default from HTML input.");
+            // Optionally, save this default to Firestore automatically if you want
+            // await setDoc(appConfigDocRef, { upiNumber: ADMIN_UPI_NUMBER }, { merge: true });
         }
     } catch (error) {
         console.error("Error fetching UPI number:", error);
@@ -200,23 +204,18 @@ const loadClientView = async (projectId) => {
     if (docSnap.exists()) {
         const project = docSnap.data();
         
-        // Calculate original totals from services
-        const originalMarketTotal = project.services.reduce((sum, service) => sum + Number(service.marketPrice), 0);
-        const originalDevTotal = project.services.reduce((sum, service) => sum + Number(service.devPrice), 0);
-        
-        // Apply market discount
+        // Retrieve saved totals for display
+        const originalMarketTotal = Number(project.calculatedOriginalMarketTotal) || 0;
         const marketDiscountPercent = Number(project.marketDiscountPercent) || 0;
-        const finalDisplayMarketPrice = originalMarketTotal * (1 - marketDiscountPercent / 100);
-        
-        // Use admin-set final payable developer price
-        const finalPayableDeveloperPrice = Number(project.finalPayableDeveloperPrice);
+        const clientDisplayDiscountedMarketPrice = Number(project.clientDisplayDiscountedMarketPrice) || 0; // This is the final market price after discount
+        const clientPayableDeveloperPrice = Number(project.clientPayableDeveloperPrice) || 0; // This is the final amount client pays
 
         const servicesRows = project.services.map(service => {
             return `
                 <tr>
                     <td>${service.name}</td>
-                    <td class="market-price">₹${Number(service.marketPrice).toLocaleString('en-IN')}</td>
-                    <td class="dev-price">₹${Number(service.devPrice).toLocaleString('en-IN')}</td>
+                    <td class="market-price">₹${Number(service.marketPrice).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
+                    <td class="dev-price">₹${Number(service.devPrice).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</td>
                 </tr>
             `;
         }).join('');
@@ -244,7 +243,7 @@ const loadClientView = async (projectId) => {
                 </div>
             `;
         } else {
-            await fetchUpiNumber(); 
+            await fetchUpiNumber(); // Ensure UPI number is fetched for client display
             paymentSection = `
                 <div class="payment-instructions card">
                     <h3>You Only Pay The Developer Price!</h3>
@@ -263,8 +262,8 @@ const loadClientView = async (projectId) => {
             `;
         }
         
-        const totalSavings = finalDisplayMarketPrice - finalPayableDeveloperPrice;
-        const savingsPercentage = finalDisplayMarketPrice > 0 ? ((totalSavings / finalDisplayMarketPrice) * 100).toFixed(0) : 0;
+        const totalSavings = clientDisplayDiscountedMarketPrice - clientPayableDeveloperPrice;
+        const savingsPercentage = clientDisplayDiscountedMarketPrice > 0 ? ((totalSavings / clientDisplayDiscountedMarketPrice) * 100).toFixed(0) : 0;
 
 
         container.innerHTML = `
@@ -281,13 +280,13 @@ const loadClientView = async (projectId) => {
                     <tbody>${servicesRows}</tbody>
                 </table>
                 <div class="totals-section">
-                    <p>Total Market Price (Original): <span class="total-market-price-display">~₹${originalMarketTotal.toLocaleString('en-IN')}</span></p>
+                    <p>Total Market Price (Original): <span class="total-market-price-display">~₹${originalMarketTotal.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span></p>
                     <p>Market Discount Applied: <span class="discount-percent-display">${marketDiscountPercent}%</span></p>
-                    <p>Final Market Price: <span class="total-market-price-display">~₹${finalDisplayMarketPrice.toLocaleString('en-IN')}</span></p>
-                    <p>Total Developer Price: <span class="final-price-emphasis">₹${finalPayableDeveloperPrice.toLocaleString('en-IN')}</span></p>
+                    <p>Final Market Price: <span class="total-market-price-display">~₹${clientDisplayDiscountedMarketPrice.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span></p>
+                    <p>Total Developer Price: <span class="final-price-emphasis">₹${clientPayableDeveloperPrice.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span></p>
                 </div>
                 <div class="you-save-box">
-                    You save ₹${totalSavings.toLocaleString('en-IN')} (${savingsPercentage}%) by choosing SNR!
+                    You save ₹${totalSavings.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} (${savingsPercentage}%) by choosing SNR!
                 </div>
             </div>
             ${paymentSection}
@@ -341,7 +340,7 @@ const populateAdminServices = (isNewProject = false, projectServices = []) => {
     servicesToLoad.forEach(service => {
         addServiceRowToAdminForm(service);
     });
-    updateCalculatedTotalsDisplay(); // Update total after populating
+    updateCalculatedTotalsDisplay(); // Update calculated totals after populating
 };
 
 const addServiceRowToAdminForm = (service = { name: '', marketPrice: '', devPrice: '' }) => {
@@ -406,7 +405,7 @@ const handleProjectSave = async (e) => {
         devPrice: Number(item.querySelector('.service-dev-price').value)
     }));
 
-    if (services.some(s => !s.name || s.devPrice <= 0 || !s.marketPrice || s.marketPrice <= 0)) {
+    if (services.some(s => !s.name || s.devPrice <= 0 || isNaN(s.devPrice) || !s.marketPrice || isNaN(s.marketPrice) || s.marketPrice <= 0)) {
         alert("Please ensure all service names and valid Developer Prices are entered. Market price will auto-calculate.");
         return;
     }
@@ -415,21 +414,30 @@ const handleProjectSave = async (e) => {
         return;
     }
 
-    const finalDevPrice = Number(finalDeveloperPriceInput.value);
-    if (isNaN(finalDevPrice) || finalDevPrice <= 0) {
+    const marketDiscountPercent = Number(marketDiscountPercentInput.value) || 0; // Default to 0 if empty/invalid
+    const clientSetFinalDeveloperPrice = Number(finalDeveloperPriceInput.value); // This is what the admin *wants* client to pay
+
+    // --- VALIDATION ---
+    if (isNaN(clientSetFinalDeveloperPrice) || clientSetFinalDeveloperPrice <= 0) {
         alert("Please enter a valid Final Price Client Pays (must be greater than 0).");
         return;
     }
-
-    const originalMarketTotal = services.reduce((sum, s) => sum + s.marketPrice, 0);
-    const marketDiscountPercent = Number(marketDiscountPercentInput.value) || 0;
-    const finalDisplayMarketPrice = originalMarketTotal * (1 - marketDiscountPercent / 100);
-
-    if (finalDevPrice >= finalDisplayMarketPrice) {
-        alert(`Final Developer Price (₹${finalDevPrice.toLocaleString('en-IN')}) must be less than the Discounted Market Price (₹${finalDisplayMarketPrice.toLocaleString('en-IN')}) for a valid comparison.`);
+    if (marketDiscountPercent < 0 || marketDiscountPercent > 100) {
+        alert("Market Discount % must be between 0 and 100.");
         return;
     }
 
+    // Calculate the original market total from individual services
+    const calculatedOriginalMarketTotal = services.reduce((sum, s) => sum + s.marketPrice, 0);
+
+    // Calculate the final market price after applying discount (for client comparison)
+    const clientDisplayDiscountedMarketPrice = calculatedOriginalMarketTotal * (1 - marketDiscountPercent / 100);
+
+    if (clientSetFinalDeveloperPrice >= clientDisplayDiscountedMarketPrice) {
+        alert(`Final Price Client Pays (₹${clientSetFinalDeveloperPrice.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}) must be less than the Discounted Market Price (₹${clientDisplayDiscountedMarketPrice.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}) for a valid comparison.`);
+        return;
+    }
+    // --- END VALIDATION ---
 
     const projectData = {
         clientName: document.getElementById('client-name').value,
@@ -437,8 +445,10 @@ const handleProjectSave = async (e) => {
         imageUrl: document.getElementById('image-url').value,
         discountReason: discountReasonInput.value.trim(),
         services: services,
-        marketDiscountPercent: marketDiscountPercent, // New: save market discount %
-        finalDeveloperPrice: finalDevPrice, // New: save final developer price
+        calculatedOriginalMarketTotal: calculatedOriginalMarketTotal, // Save for client display original
+        marketDiscountPercent: marketDiscountPercent,
+        clientDisplayDiscountedMarketPrice: clientDisplayDiscountedMarketPrice, // Save for client display after discount
+        clientPayableDeveloperPrice: clientSetFinalDeveloperPrice, // Save the exact amount client pays
         payments: []
     };
 
@@ -482,8 +492,11 @@ const handleAdminProjectActions = async (e) => {
             populateAdminServices(false, project.services); // Populate individual services
 
             marketDiscountPercentInput.value = project.marketDiscountPercent || ''; // Load market discount %
-            finalDeveloperPriceInput.value = project.finalDeveloperPrice || ''; // Load final developer price
+            finalDeveloperPriceInput.value = project.clientPayableDeveloperPrice || ''; // Load final developer price
 
+            // Calculated totals will update from populateAdminServices
+            // No need to set totalMarketPriceInput/totalDevPriceInput as they are now display-only in this version.
+            
             document.getElementById('form-title').textContent = 'Edit Project';
             document.getElementById('cancel-edit-btn').style.display = 'block';
             window.scrollTo(0, 0);
