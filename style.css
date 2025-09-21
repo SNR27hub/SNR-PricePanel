@@ -145,6 +145,16 @@ input:focus { outline:none; border-color:var(--primary-neon); box-shadow:0 0 5px
 .totals-section { margin-top:30px; padding-top:20px; border-top:2px solid var(--primary-neon); text-align:right; }
 .totals-section p { font-size:1.2rem; margin-bottom:10px; }
 .total-market-price-display { color: var(--danger-color); text-decoration: line-through; }
+
+/* New style for Calculated Developer Total on client side */
+.client-calculated-dev-total-display {
+    color: var(--danger-color); /* Red color */
+    text-decoration: line-through; /* Strikethrough */
+    font-size: 1.2rem; /* Medium size */
+    font-weight: normal; /* Normal weight */
+}
+
+
 .final-price-emphasis { font-size:3.0rem !important; font-weight:bold; color:var(--success-color); text-shadow:0 0 15px var(--success-color); } /* Bigger final price */
 .you-save-box {
     background: rgba(255, 193, 7, 0.1);
