@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNR PricePanel</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+
+        <!-- View 1: Admin Login -->
+        <div id="login-view">
+            <div class="card form-card">
+                <h1 class="title">SNR Admin Login</h1>
+                <form id="login-form">
+                    <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="login-email" placeholder="Email" required></div>
+                    <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="Password" required></div>
+                    <button type="submit" id="login-button" class="cta-button">Login</button>
+                    <p id="login-error" class="error-message"></p>
+                </form>
+            </div>
+        </div>
+
+        <!-- View 2: Admin Dashboard -->
+        <div id="admin-dashboard-view" class="view">
+            <header class="dashboard-header"><h1 class="title">Admin Dashboard</h1><button id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></header>
+            
+            <!-- Global Settings Card -->
+            <div class="card global-settings-card">
+                <h3>Global Settings</h3>
+                <div class="input-group">
+                    <i class="fas fa-phone-alt"></i>
+                    <input type="text" id="upi-number-input" placeholder="PhonePe / UPI Number" value="9692504750">
+                </div>
+                <button id="save-upi-btn" class="secondary-button">Save UPI Number</button>
+                <p id="upi-save-status" class="error-message"></p>
+            </div>
+
+            <!-- Project Quotation Form -->
+            <div class="card">
+                <h2 id="form-title">Add New Project Quotation</h2>
+                <form id="project-form">
+                    <input type="hidden" id="project-id">
+                    <input type="text" id="client-name" placeholder="Client Name" required>
+                    <input type="text" id="project-name" placeholder="Project Name" required>
+                    <input type="url" id="image-url" placeholder="Project Image URL (Optional)">
+                    
+                    <h3>Discount Reason</h3>
+                    <input type="text" id="discount-reason" placeholder="Why is the developer price lower? (e.g., Teacher discount)" required>
+                    
+                    <h3>Services List</h3>
+                    <div id="services-container"></div>
+                    
+                    <div class="total-price-display-section">
+                        <div class="total-display-item">
+                            <label>Calculated Market Total:</label>
+                            <span id="calculated-market-total">₹0</span>
+                        </div>
+                        <div class="total-display-item">
+                            <label>Calculated Developer Total:</label>
+                            <span id="calculated-dev-total">₹0</span>
+                        </div>
+                    </div>
+
+                    <div class="final-price-settings">
+                        <h3>Final Client Pricing</h3>
+                        <div class="input-group">
+                            <label for="market-discount-percent-input">Market Discount %</label>
+                            <i class="fas fa-percent"></i>
+                            <input type="number" id="market-discount-percent-input" placeholder="e.g., 20" step="any" min="0" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label for="final-developer-price-input">Final Price Client Pays</label>
+                            <i class="fas fa-rupee-sign"></i>
+                            <input type="number" id="final-developer-price-input" placeholder="Final Amount" step="any" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="cta-button">Save Project</button>
+                    <button type="button" id="cancel-edit-btn" class="secondary-button" style="display: none;">Cancel Edit</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Existing Projects & Payments</h2>
+                <div id="project-list"><div class="loader"></div></div>
+            </div>
+        </div>
+
+        <!-- View 3: Client Quotation View -->
+        <div id="client-view" class="view">
+            <div class="loader"></div>
+        </div>
+
+    </div>
+
+    <!-- Modal for Admin to Create Admin Panel Credentials -->
+    <div id="create-credentials-modal-overlay" class="modal-overlay">
+        <div class="modal-content card">
+            <h3>Create Client Admin Panel Credentials</h3>
+            <p>For Project: <strong id="modal-project-name"></strong></p>
+            <p>Client Email: <strong id="modal-client-email"></strong></p>
+            <form id="create-credentials-form">
+                <div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="credentials-email" placeholder="Admin Panel Username (Email)" required></div>
+                <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="credentials-password" placeholder="Admin Panel Password" required></div>
+                <button type="submit" class="cta-button">Set Credentials</button>
+                <button type="button" class="secondary-button" id="cancel-credentials-btn">Cancel</button>
+                <p id="credentials-error" class="error-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

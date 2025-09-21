@@ -1,0 +1,237 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+:root { --bg-dark:#0d0f11; --bg-card:#1a1d21; --primary-neon:#00ffff; --text-light:#e0e0e0; --text-dark:#a0a0a0; --success-color:#00ff7f; --danger-color:#ff4d4d; --warning-color:#ffc107; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Roboto',sans-serif; background-color:var(--bg-dark); color:var(--text-light); display:flex; justify-content:center; padding:20px; min-height:100vh; }
+.container { max-width:900px; width:100%; }
+.view { display:none; }
+.card { background:var(--bg-card); padding:30px; border-radius:12px; border:1px solid #2a2d31; margin-bottom:25px; box-shadow:0 0 15px rgba(0,0,0,0.2); }
+.title { color:var(--primary-neon); text-shadow:0 0 8px var(--primary-neon); margin-bottom:25px; text-align:center; }
+input { width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#25282c; color:var(--text-light); font-size:16px; }
+input:focus { outline:none; border-color:var(--primary-neon); box-shadow:0 0 5px var(--primary-neon); }
+.input-group { position:relative; margin-bottom:20px; }
+.input-group i { position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--text-dark); }
+#login-email, #login-password, #credentials-email, #credentials-password, #upi-number-input, #market-discount-percent-input, #final-developer-price-input { padding-left: 45px; }
+.cta-button, .secondary-button { width:100%; padding:15px; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; transition:all 0.3s; margin-top:10px; }
+.cta-button { background:var(--primary-neon); color:#000; }
+.cta-button:disabled { background:#555; cursor:not-allowed; }
+.secondary-button { background:#333; color:var(--text-light); }
+.dashboard-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+#logout-btn { background:var(--danger-color); color:white; padding:10px 15px; border-radius:5px; border: none; cursor: pointer; }
+.error-message { color:var(--danger-color); text-align:center; margin-top:15px; min-height: 1em; }
+
+/* Global Settings Card */
+.global-settings-card {
+    background: #1f2227; /* Slightly different background for settings */
+    border: 1px solid #00ffff50; /* Light neon border */
+    margin-bottom: 30px;
+    padding: 20px;
+}
+.global-settings-card h3 { color: var(--primary-neon); margin-bottom: 15px; text-align: center; }
+#upi-save-status { margin-top: 10px; font-size: 0.9em; }
+
+/* Fixed Service Items in Admin Panel */
+.service-item { display:grid; grid-template-columns:3fr 1fr 1fr; gap:10px; align-items:center; margin-bottom:10px; }
+.service-item .market-price-display { color: var(--danger-color); font-weight: bold; text-align: center; background: #333; padding: 8px; border-radius: 5px; } /* Auto-calculated market price */
+.market-price-input { text-decoration: line-through; } /* For market price display in admin form */
+
+/* Calculated Total Price Display Section in Admin Form */
+.total-price-display-section {
+    background: #2a2d31;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    border-left: 4px solid var(--primary-neon);
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.total-display-item {
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+    padding: 10px;
+    background: #1f2227;
+    border-radius: 5px;
+}
+.total-display-item label {
+    display: block;
+    font-size: 0.9em;
+    color: var(--text-dark);
+    margin-bottom: 5px;
+}
+.total-display-item span {
+    display: block;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--primary-neon);
+}
+#calculated-market-total { color: var(--danger-color); }
+#calculated-dev-total { color: var(--success-color); }
+
+
+/* Final Price Settings for Admin */
+.final-price-settings {
+    background: #2a2d31;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    border-left: 4px solid var(--warning-color);
+}
+.final-price-settings h3 {
+    text-align: center;
+    color: var(--warning-color);
+    margin-bottom: 15px;
+}
+.final-price-settings .input-group {
+    position: relative;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+.final-price-settings label {
+    flex-basis: 150px;
+    text-align: right;
+    font-weight: bold;
+    color: var(--text-light);
+    margin-right: 10px;
+}
+.final-price-settings input {
+    flex-grow: 1;
+    margin-bottom: 0;
+    padding-left: 45px;
+}
+.final-price-settings .input-group i {
+    left: 15px;
+    color: var(--primary-neon);
+}
+
+
+/* Project List in Admin Panel */
+.project-item { background:#25282c; padding:15px; border-radius:8px; margin-bottom:10px; }
+.project-header { display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.project-header strong { color:var(--primary-neon); font-size: 1.1em; }
+.project-actions { display: flex; gap: 10px; }
+.project-item-info input { padding:5px; background:#333; margin-top:5px; font-size: 0.9em; }
+.edit-btn, .delete-btn { width:auto; padding:8px 12px; font-size:14px; border:none; border-radius:5px; cursor:pointer; }
+.edit-btn { background:var(--warning-color); color:#000; }
+.delete-btn { background:var(--danger-color); color:white; }
+
+/* Pending Payments in Admin Panel */
+.pending-payments-section { border-top: 1px solid #333; margin-top: 15px; padding-top: 15px; }
+.pending-payments-section h4 { color: var(--warning-color); margin-bottom: 10px; }
+.payment-request-item { background: #333; padding: 10px; border-radius: 5px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px; }
+.payment-request-actions { display: flex; gap: 8px; } /* Container for buttons */
+.payment-request-item .verify-btn { background: var(--success-color); color: #000; padding: 5px 10px; font-size: 0.8em; border: none; border-radius: 5px; cursor: pointer; }
+.payment-request-item .reject-payment-btn { background: var(--danger-color); color: white; padding: 5px 10px; font-size: 0.8em; border: none; border-radius: 5px; cursor: pointer; } /* New Style */
+.payment-request-item .verified-status { color: var(--success-color); font-weight: bold; }
+
+/* --- Client Quotation View --- */
+.reason-box {
+    background: rgba(0, 255, 127, 0.1); /* Light green background */
+    color: var(--success-color);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 3px solid var(--success-color);
+    font-size: 1.1em;
+    font-weight: bold;
+    text-align: center;
+}
+
+.pricing-table { width:100%; border-collapse:collapse; margin-top:20px; }
+.pricing-table th, .pricing-table td { padding:15px; text-align:left; border-bottom:1px solid #2a2d31; }
+.pricing-table th { color:var(--primary-neon); }
+.market-price { color:var(--danger-color); text-decoration:line-through; text-align:right; }
+.dev-price { color:var(--success-color); font-weight:700; font-size:1.3rem; text-align:right; }
+.totals-section { margin-top:30px; padding-top:20px; border-top:2px solid var(--primary-neon); text-align:right; }
+.totals-section p { font-size:1.2rem; margin-bottom:10px; }
+.total-market-price-display { color: var(--danger-color); text-decoration: line-through; }
+
+/* New style for Calculated Developer Total on client side */
+.client-calculated-dev-total-display {
+    color: var(--danger-color); /* Red color */
+    text-decoration: line-through; /* Strikethrough */
+    font-size: 1.2rem; /* Medium size */
+    font-weight: normal; /* Normal weight */
+}
+
+
+.final-price-emphasis { font-size:3.0rem !important; font-weight:bold; color:var(--success-color); text-shadow:0 0 15px var(--success-color); } /* Bigger final price */
+.you-save-box {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--warning-color);
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+
+.payment-instructions { margin-top:30px; text-align:center; background:#111; padding:20px; border-radius:8px; }
+.payment-instructions strong { color:var(--primary-neon); font-size:1.8rem; display:block; margin-top:10px; }
+
+/* UTR Submission Form */
+#utr-form { margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; }
+#utr-form input, #utr-form button { margin-bottom: 10px; }
+#utr-form .cta-button { width: auto; padding: 10px 20px; } /* Override full width */
+
+/* Credentials Display */
+.credentials-display { margin-top: 30px; padding: 20px; background: #0a0a0a; border-radius: 8px; border: 2px solid var(--success-color); text-align: center; }
+.credentials-display h3 { color: var(--success-color); margin-bottom: 15px; }
+.credentials-display p { font-size: 1.1rem; margin-bottom: 8px; }
+.credentials-display span { font-weight: bold; color: var(--primary-neon); }
+
+/* Modal Overlay Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    display: none; /* Hidden by default */
+}
+.modal-content {
+    background: var(--bg-card);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+}
+.modal-content h3 { color: var(--primary-neon); margin-bottom: 15px; }
+.modal-content strong { color: var(--text-light); }
+#create-credentials-form .input-group { margin-top: 15px; }
+#create-credentials-form input { padding-left: 45px; }
+#create-credentials-form button { margin-top: 15px; }
+
+
+.loader { margin:50px auto; border:5px solid #333; border-top:5px solid var(--primary-neon); border-radius:50%; width:50px; height:50px; animation:spin 1s linear infinite; }
+@keyframes spin { 100% { transform:rotate(360deg); } }
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .service-item { grid-template-columns: 1fr 1fr; }
+    .service-item input[type="text"] { grid-column: 1 / -1; }
+    .project-header { flex-direction: column; align-items: flex-start; }
+    .project-actions { width: 100%; justify-content: flex-end; }
+    .payment-request-item { flex-direction: column; align-items: flex-start; }
+    .payment-request-item .verify-btn, .payment-request-item .reject-payment-btn { margin-top: 10px; width: auto; }
+    .payment-request-actions { width: 100%; justify-content: flex-end; }
+    
+    .total-price-display-section { flex-direction: column; }
+    .total-display-item { width: 100%; }
+
+    .final-price-settings .input-group { flex-direction: column; align-items: flex-start; }
+    .final-price-settings label { width: 100%; text-align: left; margin-top: 5px; margin-right: 0; }
+    .final-price-settings input { width: 100%; padding-left: 12px; }
+    .final-price-settings .input-group i { display: none; }
+}
